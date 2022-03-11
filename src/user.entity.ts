@@ -1,4 +1,4 @@
-import { IsEmail, IsOptional } from 'class-validator';
+import { IsEmail, IsOptional, IsString } from 'class-validator';
 import { User } from '@prisma/client';
 
 export class CreateUserRequest {
@@ -12,9 +12,14 @@ export class CreateUserRequest {
    */
   @IsOptional()
   name?: string;
+  /**
+   * User password.
+   */
+  @IsString()
+  password: string;
 }
 
-export class UserResponse implements User {
+export class UserResponse implements Omit<User, 'password'> {
   /**
    * Unique identifier for the user.
    */

@@ -28,13 +28,14 @@ describe('UserController', () => {
 
   describe('user resource', () => {
     it('should create a user', async () => {
-      const input = { email: 'abc', name: 'Cam' };
+      const input = { email: 'abc', name: 'Cam', password: 'Blah' };
       const user = await userController.createUser(input);
-      expect({ email: user.email, name: user.name }).toStrictEqual(input);
+      expect({ email: user.email, name: user.name })
+        .toStrictEqual({ email: input.email, name: input.name });
     });
 
     it('should retrieve a user', async () => {
-      const userInput = { email: 'abc', name: 'Mr. Goodman' };
+      const userInput = { email: 'abc', name: 'Mr. Goodman', password: 'Blah' };
       const userOut = await userController.createUser(userInput);
       const user = await userController.getUserById(userOut.id);
       expect(user).toStrictEqual(userOut);

@@ -1,6 +1,6 @@
 import { ValidationPipe, INestApplication } from '@nestjs/common';
 import { NestFactory } from '@nestjs/core';
-import { SwaggerModule, DocumentBuilder, OpenAPIObject } from '@nestjs/swagger';
+import { SwaggerModule, DocumentBuilder, OpenAPIObject, SwaggerDocumentOptions } from '@nestjs/swagger';
 import { AppModule } from './app.module';
 
 export interface AppConfig {
@@ -15,7 +15,14 @@ export function createSwaggerDocument(app: INestApplication): OpenAPIObject {
     .setVersion('1.0')
     .build();
 
-  return SwaggerModule.createDocument(app, config);
+  const options: SwaggerDocumentOptions = {
+    operationIdFactory: (
+      controllerKey: string,
+      methodKey: string
+    ) => methodKey
+  };
+
+  return SwaggerModule.createDocument(app, config, options);
 }
 
 export function setupApp(app: INestApplication, config?: AppConfig): void {

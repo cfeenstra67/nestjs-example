@@ -28,14 +28,14 @@ describe('UserController (e2e)', () => {
   it('/user (POST)', () => {
     return request(app.getHttpServer())
       .post('/user')
-      .send({ email: 'cam@google.com', name: 'cam' })
+      .send({ email: 'cam@google.com', name: 'cam', password: 'blah' })
       .expect(201);
   });
 
   it('/user (POST) without name', () => {
     return request(app.getHttpServer())
       .post('/user')
-      .send({ email: 'cam@google.com' })
+      .send({ email: 'cam2@google.com', password: 'password' })
       .expect(201);
   });
 
@@ -51,7 +51,7 @@ describe('UserController (e2e)', () => {
   });
 
   it('/user/:id (GET)', async () => {
-    const user = await prisma.user.create({ data: { email: 'abc' } });
+    const user = await prisma.user.create({ data: { email: 'abc', password: 'blah' } });
     return request(app.getHttpServer())
       .get('/user/' + user.id)
       .expect(200);
