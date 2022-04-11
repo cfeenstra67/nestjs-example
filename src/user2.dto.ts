@@ -32,7 +32,7 @@ export const UserResponse2Schema = {
   description: 'Response to the create user endpoint.',
   properties: {
     id: {
-      type: 'int32',
+      type: 'number',
       description: 'User ID.'
     },
     email: {

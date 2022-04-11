@@ -9,6 +9,8 @@ import {
   NotFoundException,
   ConflictException
 } from '@nestjs/common';
+import { ApiBody, ApiResponse } from '@nestjs/swagger';
+import { SchemaObject } from '@nestjs/swagger/dist/interfaces/open-api-spec.interface';
 import { JSONSchemaValidationPipe } from './json-schema-pipe';
 import {
   CreateUserRequest2Schema,
@@ -20,6 +22,10 @@ import { UserService } from './user.service';
 
 const CreateUserRequest2Pipe = new JSONSchemaValidationPipe<CreateUserRequest2>(CreateUserRequest2Schema);
 
+declare type Mutable<T extends object> = {
+    -readonly [K in keyof T]: T[K]
+}
+
 @Controller()
 export class UserController2 {
   constructor(private readonly userService: UserService) {}
@@ -28,6 +34,11 @@ export class UserController2 {
    * Get an application user by ID
    */
   @Get('user2/:id')
+  @ApiResponse({
+    status: 200,
+    // TS complains about readonly types, hack for now
+    schema: UserResponse2Schema as any
+  })
   async getUserById(
     @Param('id', ParseIntPipe) id: number,
   ): Promise<UserResponse2> {
@@ -42,6 +53,18 @@ export class UserController2 {
    * Create a new user.
    */
   @Post('/user2')
+  // TS complains about the immutable properties on the schema because
+  // of the declaration of `as const` (which is required for the JTD Data
+  // Type Generation)
+  @ApiBody({ schema: CreateUserRequest2Schema as any })
+  @ApiResponse({
+    status: 201,
+    // TS complains about readonly types, hack for now
+    schema: {
+      name: 'CreateUserRequest2',
+      ...CreateUserRequest2Schema
+    } as any,
+  })
   async createUser(
     @Body(CreateUserRequest2Pipe) postData: CreateUserRequest2
   ): Promise<UserResponse2> {
