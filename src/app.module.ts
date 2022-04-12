@@ -1,13 +1,25 @@
 import { Module } from '@nestjs/common';
+import { RouterModule } from '@nestjs/core';
 import { PrismaService } from './prisma.service';
-import { UserController } from './user.controller';
-import { UserController2 } from './user2.controller';
-import { UserService } from './user.service';
+import { UserModule } from './user.module';
+import { PrismaClient } from '@prisma/client';
 
 @Module({
-  controllers: [UserController, UserController2],
+  imports: [
+    UserModule,
+    RouterModule.register([
+      {
+        path: 'v1',
+        children: [
+          {
+            path: 'users',
+            module: UserModule
+          },
+        ]
+      }
+    ])
+  ],
   providers: [
-    UserService,
     PrismaService,
   ]
 })

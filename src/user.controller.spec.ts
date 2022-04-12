@@ -1,33 +1,24 @@
-import { NotFoundException, ValidationPipe } from '@nestjs/common';
-import { Test, TestingModule } from '@nestjs/testing';
-import { PrismaService } from './prisma.service';
+import { NotFoundException } from '@nestjs/common';
+import { PrismaClient } from '@prisma/client';
 import { UserController } from './user.controller';
 import { UserService } from './user.service';
 
+async function loadUserController(): Promise<UserController> {
+  const prismaClient = new PrismaClient();
+  const userService = new UserService(prismaClient);
+  const userController = new UserController(userService);
+
+  const deleteUsers = prismaClient.user.deleteMany();
+  await prismaClient.$transaction([deleteUsers]);
+
+  return userController;
+}
+
 describe('UserController', () => {
-  let userController: UserController;
-  let prismaService: PrismaService;
-
-  beforeEach(async () => {
-    const testingModule: TestingModule = await Test.createTestingModule({
-      controllers: [UserController],
-      providers: [UserService, PrismaService],
-    }).compile();
-
-    const app = testingModule.createNestApplication();
-    app.useGlobalPipes(new ValidationPipe());
-    await app.init();
-
-    userController = testingModule.get<UserController>(UserController);
-    prismaService = testingModule.get<PrismaService>(PrismaService);
-
-    const deleteUsers = prismaService.user.deleteMany();
-
-    await prismaService.$transaction([deleteUsers]);
-  });
 
   describe('user resource', () => {
     it('should create a user', async () => {
+      const userController = await loadUserController();
       const input = { email: 'abc', name: 'Cam', password: 'Blah' };
       const user = await userController.createUser(input);
       expect({ email: user.email, name: user.name })
@@ -35,6 +26,7 @@ describe('UserController', () => {
     });
 
     it('should retrieve a user', async () => {
+      const userController = await loadUserController();
       const userInput = { email: 'abc', name: 'Mr. Goodman', password: 'Blah' };
       const userOut = await userController.createUser(userInput);
       const user = await userController.getUserById(userOut.id);
@@ -42,6 +34,7 @@ describe('UserController', () => {
     });
 
     it('should 404 with no users', async () => {
+      const userController = await loadUserController();
       const userId = 1324324;
       expect(async () => {
         await userController.getUserById(userId);

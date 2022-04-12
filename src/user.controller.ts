@@ -1,4 +1,3 @@
-import exclude from './exclude';
 import {
   Controller,
   Get,
@@ -7,41 +6,48 @@ import {
   Body,
   ParseIntPipe,
   NotFoundException,
-  ConflictException
+  ConflictException,
+  Inject
 } from '@nestjs/common';
 import { CreateUserRequest, UserResponse } from './user.dto';
 import { UserService } from './user.service';
 
 @Controller()
 export class UserController {
-  constructor(private readonly userService: UserService) {}
+
+  // Can be any unique string or Symbol, though if it isn't provided it will
+  // show up in the error message so good to use a value that's descriptive
+  static UserService = 'UserController.UserService';
+
+  constructor(
+    @Inject(UserController.UserService) private userService: UserService
+  ) {}
 
   /**
    * Get an application user by ID
    */
-  @Get('user/:id')
+  @Get(':id')
   async getUserById(
     @Param('id', ParseIntPipe) id: number,
   ): Promise<UserResponse> {
-    const user = await this.userService.user({ id });
+    const user = await this.userService.getUser({ id });
     if (user === null) {
       throw new NotFoundException();
     }
-    return exclude(user, 'password');
+    return user;
   }
 
   /**
    * Create a new user.
    */
-  @Post('/user')
+  @Post()
   async createUser(@Body() postData: CreateUserRequest): Promise<UserResponse> {
-    const existingUser = await this.userService.user({ email: postData.email });
+    const existingUser = await this.userService.getUser({ email: postData.email });
     if (existingUser !== null) {
       throw new ConflictException(
         `User with email ${postData.email} already exists.`
       );
     }
-    const user = await this.userService.createUser(postData)
-    return exclude(user, 'password');
+    return await this.userService.createUser(postData)
   }
 }

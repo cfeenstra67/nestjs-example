@@ -1,22 +1,30 @@
-import { Injectable } from '@nestjs/common';
 import { PrismaService } from './prisma.service';
-import { User, Prisma } from '@prisma/client';
+import { UserResponse } from './user.dto';
+import { Prisma, PrismaClient } from '@prisma/client';
 
-@Injectable()
+const userResponseSelectFields = {
+  id: true,
+  email: true,
+  name: true,
+} as const;
+
 export class UserService {
-  constructor(private prisma: PrismaService) {}
 
-  async user(
+  constructor(private prisma: PrismaClient) {}
+
+  async getUser(
     userWhereUniqueInput: Prisma.UserWhereUniqueInput,
-  ): Promise<User | null> {
+  ): Promise<UserResponse | null> {
     return this.prisma.user.findUnique({
       where: userWhereUniqueInput,
+      select: userResponseSelectFields
     });
   }
 
-  async createUser(data: Prisma.UserCreateInput): Promise<User> {
+  async createUser(data: Prisma.UserCreateInput): Promise<UserResponse> {
     return this.prisma.user.create({
       data,
+      select: userResponseSelectFields
     });
   }
 }
